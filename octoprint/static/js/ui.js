@@ -1453,6 +1453,11 @@ $(function() {
         $('#tabs a[data-toggle="tab"]').on('shown', function (e) {
             temperatureViewModel.updatePlot();
         });
+        
+        //update the temperature plot when the browser window is resized so it doesn't overflow
+	    $(window).resize(function() {
+		   temperatureViewModel.updatePlot(); 
+	    });
 
         //~~ Speed controls
 
@@ -1572,11 +1577,6 @@ $(function() {
         if(gCodeVisualizerElement){
             gcodeViewModel.initialize();
         }
-        
-        //update the temperature plot when the browser window is resized so it doesn't overflow
-	    $(window).resize(function() {
-		   temperatureViewModel.updatePlot(); 
-	    });
 	    
         //~~ startup commands
 
