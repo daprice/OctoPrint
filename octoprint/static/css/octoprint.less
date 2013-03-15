@@ -26,6 +26,18 @@
   .brand, .nav>li>a {
     .navbar-inner-text(@base);
   }
+
+  .nav {
+    li.dropdown.open>.dropdown-toggle, li.dropdown.active>.dropdown-toggle, li.dropdown.open.active>.dropdown-toggle {
+      // invert for dropdown
+      background-color: @base; /* fallback color if gradients are not supported */
+      background-image: -webkit-linear-gradient(top, @bottom, @top); /* For Chrome and Safari */
+      background-image: -moz-linear-gradient(top, @bottom, @top); /* For old Fx (3.6 to 15) */
+      background-image: -ms-linear-gradient(top, @bottom, @top); /* For pre-releases of IE 10*/
+      background-image: -o-linear-gradient(top, @bottom, @top); /* For old Opera (11.1 to 12.0) */
+      background-image: linear-gradient(to bottom, @bottom, @top); /* Standard syntax; must be last */
+    }
+  }
 }
 
 #navbar .navbar-inner {
@@ -124,37 +136,35 @@ table {
     overflow: hidden;
 
     // gcode files
-    .gcode_files_name {
+    &.gcode_files_name {
       text-overflow: ellipsis;
       text-align: left;
-      width: 55%;
     }
 
-    .gcode_files_size {
+    &.gcode_files_size {
       text-align: right;
-      width: 25%;
+      width: 55px;
     }
 
-    .gcode_files_action, .gcode_files_action {
+    &.gcode_files_action {
       text-align: center;
-      width: 20%;
+      width: 45px;
     }
 
     // timelapse files
-    .timelapse_files_name, .timelapse_files_name {
+    &.timelapse_files_name {
       text-overflow: ellipsis;
       text-align: left;
-      width: 55%;
     }
 
-    .timelapse_files_size, .timelapse_files_size {
+    &.timelapse_files_size {
       text-align: right;
-      width: 25%;
+      width: 55px;
     }
 
-    .timelapse_files_action, .timelapse_files_action {
+    &.timelapse_files_action {
       text-align: center;
-      width: 20%;
+      width: 45px;
     }
   }
 }
@@ -246,13 +256,6 @@ ul.dropdown-menu li a {
       margin-bottom: 0;
     }
   }
-}
-
-#gcode_upload_progress .bar {
-  -webkit-transition: width 0s linear !important;
-  -moz-transition: width 0s linear !important;
-  -o-transition: width 0s linear !important;
-  transition: width 0s linear !important;
 }
 
 /** Controls */

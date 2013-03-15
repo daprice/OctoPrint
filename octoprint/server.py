@@ -9,6 +9,7 @@ import tornadio2
 import os
 import threading
 import logging, logging.config
+import subprocess
 
 from octoprint.printer import Printer, getConnectionOptions
 from octoprint.settings import settings
@@ -16,23 +17,13 @@ import octoprint.timelapse as timelapse
 import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
 
-BASEURL = "/ajax/"
 SUCCESS = {}
-
-UPLOAD_FOLDER = settings().getBaseFolder("uploads")
-
+BASEURL = "/ajax/"
 app = Flask("octoprint")
-gcodeManager = gcodefiles.GcodeManager()
-printer = Printer(gcodeManager)
-
-@app.route("/")
-def index():
-	return render_template(
-		"index.html",
-		webcamStream=settings().get(["webcam", "stream"]),
-		enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
-		enableGCodeVisualizer=settings().get(["feature", "gCodeVisualizer"])
-	)
+# Only instantiated by the Server().run() method
+# In order that threads don't start too early when running as a Daemon
+printer = None 
+gcodeManager = None
 
 #~~ Printer state
 
@@ -51,11 +42,13 @@ class PrinterStateConnection(tornadio2.SocketConnection):
 
 	def on_open(self, info):
 		self._logger.info("New connection from client")
+		# Use of global here is smelly
 		printer.registerCallback(self)
 		gcodeManager.registerCallback(self)
 
 	def on_close(self):
 		self._logger.info("Closed client connection")
+		# Use of global here is smelly
 		printer.unregisterCallback(self)
 		gcodeManager.unregisterCallback(self)
 
@@ -100,6 +93,18 @@ class PrinterStateConnection(tornadio2.SocketConnection):
 	def addTemperature(self, data):
 		with self._temperatureBacklogMutex:
 			self._temperatureBacklog.append(data)
+
+# Did attempt to make webserver an encapsulated class but ended up with __call__ failures
+
+@app.route("/")
+def index():
+	return render_template(
+		"index.html",
+		webcamStream=settings().get(["webcam", "stream"]),
+		enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
+		enableGCodeVisualizer=settings().get(["feature", "gCodeVisualizer"]),
+    	enableSystemMenu=settings().get(["system"]) is not None and settings().get(["system", "actions"]) is not None and len(settings().get(["system", "actions"])) > 0
+	)
 
 #~~ Printer control
 
@@ -171,7 +176,7 @@ def setTargetTemperature():
 		return jsonify(SUCCESS)
 
 	elif request.values.has_key("temp"):
-		# set target temperature
+	# set target temperature
 		temp = request.values["temp"]
 		printer.command("M104 S" + temp)
 
@@ -243,7 +248,7 @@ def readGcodeFiles():
 
 @app.route(BASEURL + "gcodefiles/<path:filename>", methods=["GET"])
 def readGcodeFile(filename):
-	return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+	return send_from_directory(settings().getBaseFolder("uploads"), filename, as_attachment=True)
 
 @app.route(BASEURL + "gcodefiles/upload", methods=["POST"])
 def uploadGcodeFile():
@@ -349,7 +354,8 @@ def getSettings():
 			"streamUrl": s.get(["webcam", "stream"]),
 			"snapshotUrl": s.get(["webcam", "snapshot"]),
 			"ffmpegPath": s.get(["webcam", "ffmpeg"]),
-			"bitrate": s.get(["webcam", "bitrate"])
+			"bitrate": s.get(["webcam", "bitrate"]),
+			"watermark": s.getBoolean(["webcam", "watermark"])
 		},
 		"feature": {
 			"gcodeViewer": s.getBoolean(["feature", "gCodeVisualizer"]),
@@ -363,6 +369,9 @@ def getSettings():
 		},
 		"temperature": {
 			"profiles": s.get(["temperature", "profiles"])
+		},
+		"system": {
+			"actions": s.get(["system", "actions"])
 		}
 	})
 
@@ -384,9 +393,10 @@ def setSettings():
 
 		if "webcam" in data.keys():
 			if "streamUrl" in data["webcam"].keys(): s.set(["webcam", "stream"], data["webcam"]["streamUrl"])
-			if "snapshot" in data["webcam"].keys(): s.set(["webcam", "snapshot"], data["webcam"]["snapshotUrl"])
-			if "ffmpeg" in data["webcam"].keys(): s.set(["webcam", "ffmpeg"], data["webcam"]["ffmpeg"])
+			if "snapshotUrl" in data["webcam"].keys(): s.set(["webcam", "snapshot"], data["webcam"]["snapshotUrl"])
+			if "ffmpegPath" in data["webcam"].keys(): s.set(["webcam", "ffmpeg"], data["webcam"]["ffmpegPath"])
 			if "bitrate" in data["webcam"].keys(): s.set(["webcam", "bitrate"], data["webcam"]["bitrate"])
+			if "watermark" in data["webcam"].keys(): s.setBoolean(["webcam", "watermark"], data["webcam"]["watermark"])
 
 		if "feature" in data.keys():
 			if "gcodeViewer" in data["feature"].keys(): s.setBoolean(["feature", "gCodeVisualizer"], data["feature"]["gcodeViewer"])
@@ -401,82 +411,118 @@ def setSettings():
 		if "temperature" in data.keys():
 			if "profiles" in data["temperature"].keys(): s.set(["temperature", "profiles"], data["temperature"]["profiles"])
 
+		if "system" in data.keys():
+			if "actions" in data["system"].keys(): s.set(["system", "actions"], data["system"]["actions"])
+
 		s.save()
 
 	return getSettings()
 
+#~~ system control
+
+@app.route(BASEURL + "system", methods=["POST"])
+def performSystemAction():
+	logger = logging.getLogger(__name__)
+	if request.values.has_key("action"):
+		action = request.values["action"]
+		availableActions = settings().get(["system", "actions"])
+		for availableAction in availableActions:
+			if availableAction["action"] == action:
+				logger.info("Performing command: %s" % availableAction["command"])
+				try:
+					subprocess.check_output(availableAction["command"], shell=True)
+				except subprocess.CalledProcessError, e:
+					logger.warn("Command failed with return code %i: %s" % (e.returncode, e.message))
+					return app.make_response(("Command failed with return code %i: %s" % (e.returncode, e.message), 500, []))
+				except Exception, ex:
+					logger.exception("Command failed")
+					return app.make_response(("Command failed: %r" % ex, 500, []))
+	return jsonify(SUCCESS)
+
 #~~ startup code
+class Server():
+	def __init__(self, configfile=None, basedir=None, host="0.0.0.0", port=5000, debug=False):
+		self._configfile = configfile
+		self._basedir = basedir
+		self._host = host
+		self._port = port
+		self._debug = debug
 
-def run(host = "0.0.0.0", port = 5000, debug = False):
-	from tornado.wsgi import WSGIContainer
-	from tornado.httpserver import HTTPServer
-	from tornado.ioloop import IOLoop
-	from tornado.web import Application, FallbackHandler
+	def run(self):
+		# Global as I can't work out a way to get it into PrinterStateConnection
+		global printer
+		global gcodeManager
 
-	logging.getLogger(__name__).info("Listening on http://%s:%d" % (host, port))
-	app.debug = debug
+		from tornado.wsgi import WSGIContainer
+		from tornado.httpserver import HTTPServer
+		from tornado.ioloop import IOLoop
+		from tornado.web import Application, FallbackHandler
 
-	router = tornadio2.TornadioRouter(PrinterStateConnection)
-	tornado_app = Application(router.urls + [
-		(".*", FallbackHandler, {"fallback": WSGIContainer(app)})
-	])
-	server = HTTPServer(tornado_app)
-	server.listen(port, address=host)
-	IOLoop.instance().start()
+		# first initialize the settings singleton and make sure it uses given configfile and basedir if available
+		self._initSettings(self._configfile, self._basedir)
 
-def initLogging():
-	config = {
-		"version": 1,
-		"formatters": {
-			"simple": {
-				"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-			}
-		},
-		"handlers": {
-			"console": {
-				"class": "logging.StreamHandler",
-				"level": "DEBUG",
-				"formatter": "simple",
-				"stream": "ext://sys.stdout"
+		# then initialize logging
+		self._initLogging(self._debug)
+
+		gcodeManager = gcodefiles.GcodeManager()
+		printer = Printer(gcodeManager)
+
+		if self._host is None:
+			self._host = settings().get(["server", "host"])
+		if self._port is None:
+			self._port = settings().getInt(["server", "port"])
+
+		logging.getLogger(__name__).info("Listening on http://%s:%d" % (self._host, self._port))
+		app.debug = self._debug
+
+		self._router = tornadio2.TornadioRouter(PrinterStateConnection)
+
+		self._tornado_app = Application(self._router.urls + [
+			(".*", FallbackHandler, {"fallback": WSGIContainer(app)})
+		])
+		self._server = HTTPServer(self._tornado_app)
+		self._server.listen(self._port, address=self._host)
+		IOLoop.instance().start()
+
+	def _initSettings(self, configfile, basedir):
+		s = settings(init=True, basedir=basedir, configfile=configfile)
+
+	def _initLogging(self, debug):
+		self._config = {
+			"version": 1,
+			"formatters": {
+				"simple": {
+					"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+				}
 			},
-			"file": {
-				"class": "logging.handlers.TimedRotatingFileHandler",
-				"level": "DEBUG",
-				"formatter": "simple",
-				"when": "D",
-				"backupCount": "1",
-				"filename": os.path.join(settings().getBaseFolder("logs"), "octoprint.log")
+			"handlers": {
+				"console": {
+					"class": "logging.StreamHandler",
+					"level": "DEBUG",
+					"formatter": "simple",
+					"stream": "ext://sys.stdout"
+				},
+				"file": {
+					"class": "logging.handlers.TimedRotatingFileHandler",
+					"level": "DEBUG",
+					"formatter": "simple",
+					"when": "D",
+					"backupCount": "1",
+					"filename": os.path.join(settings().getBaseFolder("logs"), "octoprint.log")
+				}
+			},
+			"loggers": {
+				"octoprint.gcodefiles": {
+					"level": "DEBUG"
+				}
+			},
+			"root": {
+				"level": "INFO",
+				"handlers": ["console", "file"]
 			}
-		},
-		"loggers": {
-			"octoprint.gcodefiles": {
-				"level": "DEBUG"
-			}
-		},
-		"root": {
-			"level": "INFO",
-			"handlers": ["console", "file"]
 		}
-	}
-	logging.config.dictConfig(config)
-
-def main():
-	from optparse import OptionParser
-
-	defaultHost = settings().get(["server", "host"])
-	defaultPort = settings().get(["server", "port"])
-
-	parser = OptionParser(usage="usage: %prog [options]")
-	parser.add_option("-d", "--debug", action="store_true", dest="debug",
-		help="Enable debug mode")
-	parser.add_option("--host", action="store", type="string", default=defaultHost, dest="host",
-		help="Specify the host on which to bind the server, defaults to %s if not set" % (defaultHost))
-	parser.add_option("--port", action="store", type="int", default=defaultPort, dest="port",
-		help="Specify the port on which to bind the server, defaults to %s if not set" % (defaultPort))
-	(options, args) = parser.parse_args()
-
-	initLogging()
-	run(host=options.host, port=options.port, debug=options.debug)
+		logging.config.dictConfig(self._config)
 
 if __name__ == "__main__":
-	main()
+	octoprint = Server()
+	octoprint.run()

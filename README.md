@@ -1,6 +1,8 @@
 OctoPrint
 =========
 
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=foosel&url=https://github.com/foosel/OctoPrint&title=OctoPrint&language=&tags=github&category=software)
+
 OctoPrint provides a responsive web interface for controlling a 3D printer (RepRap, Ultimaker, ...). It currently
 allows
 
@@ -39,32 +41,39 @@ Usage
 
 Just start the server via
 
-    python -m octoprint.server
-
-or alternatively
-
     ./run
 
 By default it binds to all interfaces on port 5000 (so pointing your browser to `http://127.0.0.1:5000`
 will do the trick). If you want to change that, use the additional command line parameters `host` and `port`,
-which accept the host ip to bind to and the numeric port number respectively. If for example you want to the server
+which accept the host ip to bind to and the numeric port number respectively. If for example you want the server
 to only listen on the local interface on port 8080, the command line would be
-
-    python -m octoprint.server --host=127.0.0.1 --port=8080
-
-or
 
     ./run --host=127.0.0.1 --port=8080
 
 Alternatively, the host and port on which to bind can be defined via the configuration.
 
+If you want to run OctoPrint as a daemon (only supported on Linux), use
+
+   ./run --daemon {start|stop|restart} [--pid PIDFILE]
+
+If you do not supply a custom pidfile location via `--pid PIDFILE`, it will be created at `/tmp/octoprint.pid`.
+
+You can also specify the configfile or the base directory (for basing off the `uploads`, `timelapse` and `logs` folders),
+e.g.:
+
+    ./run --config /path/to/another/config.yaml --basedir /path/to/my/basedir
+
+See `run --help` for further information.
+
 Configuration
 -------------
 
-The config-file `config.yaml` for OctoPrint is expected in its settings folder, which is located at `~/.octoprint`
-on Linux, at `%APPDATA%/OctoPrint` on Windows and at `~/Library/Application Support/OctoPrint` on MacOS.
+If not specified via the commandline, the configfile `config.yaml` for OctoPrint is expected in its settings folder,
+which is located at `~/.octoprint` on Linux, at `%APPDATA%/OctoPrint` on Windows and at
+`~/Library/Application Support/OctoPrint` on MacOS.
 
-The following example config should explain the available options:
+The following example config should explain the available options, most of which can also be configured via the
+settings dialog within OctoPrint:
 
     # Use the following settings to configure the serial connection to the printer
     serial:
@@ -104,6 +113,10 @@ The following example config should explain the available options:
       # Whether to enable the gcode viewer in the UI or not
       gCodeVisualizer: true
 
+      # Specified whether OctoPrint should wait for the start response from the printer before trying to send commands
+      # during connect
+      waitForStartOnConnect: false
+
     # Use the following settings to set custom paths for folders used by OctoPrint
     folder:
       # Absolute path where to store gcode uploads. Defaults to the uploads folder in the OctoPrint settings folder
@@ -115,7 +128,38 @@ The following example config should explain the available options:
 
       # Absolute path where to store temporary timelapse files. Defaults to the timelapse/tmp folder in the OctoPrint
       # settings dir
-      timelapse_tmp: /path/timelapse/tmp/folder
+      timelapse_tmp: /path/to/timelapse/tmp/folder
+
+      # Absolute path where to store log files. Defaults to the logs folder in the OctoPrint settings dir
+      logs: /path/to/logs/folder
+
+    # Use the following settings to configure temperature profiles which will be displayed in the temperature tab.
+    temperature:
+      profiles:
+      - name: ABS
+        extruder: 210
+        bed: 100
+      - name: PLA
+        extruder: 180
+        bed: 60
+
+    # Use the following settings to configure printer parameters
+    printerParameters:
+      # Use this to define the movement speed on X, Y, Z and E to use for the controls on the controls tab
+      movementSpeed:
+        x: 6000
+        y: 6000
+        z: 200
+        e: 300
+
+    # Use the following settings to tweak OctoPrint's appearance a bit to better distinguish multiple instances/printers
+    appearance:
+      # Use this to give your printer a name. It will be displayed in the title bar (as "<Name> [OctoPrint]") and in the
+      # navigation bar (as "OctoPrint: <Name>")
+      name: My Printer Model
+
+      # Use this to color the navigation bar. Supported colors are red, orange, yellow, green, blue, violet and default.
+      color: blue
 
     # Use the following settings to add custom controls to the "Controls" tab within OctoPrint
     #
@@ -167,61 +211,24 @@ The following example config should explain the available options:
             name: Speed
             parameter: speed
 
+    # Use the following settings to add custom system commands to the "System" dropdown within OctoPrint's top bar
+    #
+    # Commands consist of a name, an action identifier, the commandline to execute and an optional confirmation message
+    # to display before actually executing the command (should be set to False if a confirmation dialog is not desired).
+    #
+    # The following example defines a command for shutting down the system under Linux. It assumes that the user under
+    # which OctoPrint is running is allowed to do this without password entry.
+    system:
+      actions:
+      - name: Shutdown
+        action: shutdown
+        command: sudo shutdown -h now
+        confirm: You are about to shutdown the system.
+
 Setup on a Raspberry Pi running Raspbian
 ----------------------------------------
 
-I currently run the OctoPrint on a Raspberry Pi running Raspbian (http://www.raspbian.org/). I recommend to use
-a maximum baudrate of 115200 baud in your printer firmware, as the used Python serial module does not support 
-250000 baud in all Linux distributions yet (Raspbian being not one of them, at least according to my experience). 
-
-For the basic package you'll need Python 2.7 (should be installed by default), pip and a couple of dependencies
-listed in requirements.txt:
-
-    cd ~
-    sudo apt-get install python-pip git
-    git clone https://github.com/foosel/OctoPrint.git
-    cd OctoPrint
-    sudo pip install -r requirements.txt
-
-You should then be able to start the OctoPrint server:
-
-    pi@raspberrypi ~/OctoPrint $ ./run
-     * Running on http://0.0.0.0:5000/
-
-If you also want webcam and timelapse support, you'll need to download and compile MJPG-Streamer:
-
-    cd ~
-    sudo apt-get install subversion libjpeg8-dev imagemagick libav-tools
-    wget -Omjpg-streamer.tar.gz http://mjpg-streamer.svn.sourceforge.net/viewvc/mjpg-streamer/mjpg-streamer/?view=tar
-    tar xfz mjpg-streamer.tar.gz
-    cd mjpg-streamer
-    make
-
-This should hopefully run through without any compilation errors. You should then be able to start the webcam server:
-
-    pi@raspberrypi ~/mjpg-streamer $ ./mjpg_streamer -i "./input_uvc.so" -o "./output_http.so"
-    MJPG Streamer Version: svn rev:
-     i: Using V4L2 device.: /dev/video0
-     i: Desired Resolution: 640 x 480
-     i: Frames Per Second.: 5
-     i: Format............: MJPEG
-    [...]
-     o: www-folder-path...: disabled
-     o: HTTP TCP port.....: 8080
-     o: username:password.: disabled
-     o: commands..........: enabled
-
-If you now point your browser to `http://<your Raspi's IP>:8080/?action=stream`, you should see a moving picture at 5fps.
-Open `~/.octoprint/config.yaml` and add the following lines to it:
-
-    webcam:
-      stream: http://<your Raspi's IP>:8080/?action=stream
-      snapshot: http://127.0.0.1:8080/?action=snapshot
-      ffmpeg: /usr/bin/avconv
-
-Restart the OctoPrint server and reload its frontend. You should now see a "Webcam" tab with content.
-
-If everything works, add the startup commands to `/etc/rc.local`.
+A comprehensive setup guide can be found [on the wiki](https://github.com/foosel/OctoPrint/wiki/Setup-on-a-Raspberry-Pi-running-Raspbian).
 
 Credits
 -------
@@ -243,6 +250,7 @@ It also uses the following libraries and frameworks for backend and frontend:
 * Underscore.js: http://underscorejs.org/
 * Flot: http://www.flotcharts.org/
 * jQuery File Upload: http://blueimp.github.com/jQuery-File-Upload/
+* Pines Notify: http://pinesframework.org/pnotify/
 * gCodeVisualizer: https://github.com/hudbrog/gCodeViewer
 
 The following software is recommended for Webcam support on the Raspberry Pi:
