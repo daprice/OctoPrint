@@ -1614,7 +1614,7 @@ $(function() {
         }
 
         ko.applyBindings(connectionViewModel, document.getElementById("connection"));
-        ko.applyBindings(printerStateViewModel, document.getElementById("state"));
+        ko.applyBindings(printerStateViewModel, document.getElementById("state-group"));
         ko.applyBindings(gcodeFilesViewModel, document.getElementById("files"));
         ko.applyBindings(gcodeFilesViewModel, document.getElementById("files-heading"));
         ko.applyBindings(temperatureViewModel, document.getElementById("temp"));

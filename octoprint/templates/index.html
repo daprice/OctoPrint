@@ -70,13 +70,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion-group">
+                    <div class="accordion-group" id="state-group">
                         <div class="accordion-heading">
                             <a class="accordion-toggle" data-toggle="collapse" href="#state"><i class="icon-info-sign"></i> State</a>
+                            <span><strong class="visible-phone" data-bind="text: stateString"></strong></span>
                         </div>
                         <div class="accordion-body collapse in" id="state">
                             <div class="accordion-inner">
-                                Machine State: <strong data-bind="text: stateString"></strong><br>
+                                <span class="hidden-phone">Machine State: <strong data-bind="text: stateString"></strong><br></span>
                                 File: <strong data-bind="text: filename"></strong><br>
                                 Filament: <strong data-bind="text: filament"></strong><br>
                                 Estimated Print Time: <strong data-bind="text: estimatedPrintTime"></strong><br>
