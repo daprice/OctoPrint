@@ -302,7 +302,9 @@ function TemperatureViewModel(settingsViewModel) {
             }
         },
         legend: {
-            noColumns: 4
+            noColumns: 1,
+            position: "nw",
+            backgroundOpacity: 0.65
         }
     }
 
