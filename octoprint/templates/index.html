@@ -126,10 +126,10 @@
                                         </tr>
                                     </thead>
                                     <tbody data-bind="foreach: listHelper.paginatedItems">
-                                        <tr data-bind="css: $root.getSuccessClass($data), popover: { title: name, animation: true, html: true, placement: 'right', trigger: 'hover', delay: 0, content: $root.getPopoverContent($data), html: true }">
+                                        <tr data-bind="css: $root.getSuccessClass($data), popover: { title: name, animation: true, html: true, placement: function() { if( window.innerWidth <= 480 ) return 'bottom'; else return 'right'; }, trigger: 'click', delay: 0, content: $root.getPopoverContent($data), html: true }, event: { mouseover:  function() { $($element).popover('show'); }, mouseout: function() { $($element).popover('hide'); } }">
                                             <td class="gcode_files_name" data-bind="text: name"></td>
                                             <td class="gcode_files_size" data-bind="text: size"></td>
-                                            <td class="gcode_files_action"><a href="#" class="icon-trash" data-bind="click: function() { $root.removeFile($data.name); }"></a>&nbsp;|&nbsp;<a href="#" class="icon-folder-open" data-bind="click: function() { $root.loadFile($data.name); }"></a></td>
+                                            <td class="gcode_files_action"><a href="#" class="icon-trash" data-bind="click: function() { $root.removeFile($data.name); }, clickBubble: false"></a>&nbsp;|&nbsp;<a href="#" class="icon-folder-open" data-bind="click: function() { $root.loadFile($data.name); }, clickBubble: false"></a></td>
                                         </tr>
                                     </tbody>
                                 </table>
