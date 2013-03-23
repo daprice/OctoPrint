@@ -1444,10 +1444,10 @@ $(function() {
         //~~ Show settings - to ensure centered
         $('#navbar_show_settings').click(function() {
             $('#settings_dialog').modal()
-                 .css({
+                 /*.css({
                      width: 'auto',
                      'margin-left': function() { return -($(this).width() /2); }
-                  });
+                  })*/;
             return false;
         })
 

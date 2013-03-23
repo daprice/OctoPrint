@@ -354,6 +354,13 @@ ul.dropdown-menu li a {
 /** Settings dialog */
 #settings_dialog {
   width: 650px;
+  max-width: intrinsic;
+  max-width: max-content;
+  position: absolute;
+  
+  .modal-body {
+	  max-height: none;
+  }
 }
 /** General helper classes */
 
