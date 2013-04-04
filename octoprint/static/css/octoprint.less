@@ -431,15 +431,30 @@ ul.dropdown-menu li a {
 /** Footer */
 .footer {
   text-align: right;
+  
+  ul {
+	margin-left: 0px;
+  }
 
   ul li {
     display: inline;
+    white-space: nowrap;
     margin-left: 1em;
     font-size: 85%;
     a {
       color: #555;
     }
   }
+  
+  ul li:first-child {
+	  margin-left: 0px;
+  }
+}
+
+@media (max-width: 767px) {
+	.footer {
+		text-align: center;
+	}
 }
 
 /** General helper classes */
