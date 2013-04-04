@@ -9,6 +9,7 @@
 
         <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" media="screen">
 		<link href="{{ url_for('static', filename='css/bootstrap-responsive.min.css') }}" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet" media="screen">
         <link href="{{ url_for('static', filename='css/jquery.fileupload-ui.css') }}" rel="stylesheet" media="screen">
         <link href="{{ url_for('static', filename='css/jquery.pnotify.default.css') }}" rel="stylesheet" media="screen">
         <link href="{{ url_for('static', filename='css/octoprint.less') }}" rel="stylesheet/less" type="text/css" media="screen">
@@ -129,7 +130,9 @@
                                         <tr data-bind="css: $root.getSuccessClass($data), popover: { title: name, animation: true, html: true, placement: function() { if( window.innerWidth <= 480 ) return 'bottom'; else return 'right'; }, trigger: 'click', delay: 0, content: $root.getPopoverContent($data), html: true }, event: { mouseover:  function() { $($element).popover('show'); }, mouseout: function() { $($element).popover('hide'); } }">
                                             <td class="gcode_files_name" data-bind="text: name"></td>
                                             <td class="gcode_files_size" data-bind="text: size"></td>
-                                            <td class="gcode_files_action"><a href="#" class="icon-trash" data-bind="click: function() { $root.removeFile($data.name); }, clickBubble: false"></a>&nbsp;|&nbsp;<a href="#" class="icon-folder-open" data-bind="click: function() { $root.loadFile($data.name); }, clickBubble: false"></a></td>
+                                            <td class="gcode_files_action">
+                                                <a href="#" class="icon-trash" title="Remove" data-bind="click: function() { $root.removeFile($data.name); }, clickBubble: false"></a>&nbsp;|&nbsp;<a href="#" class="icon-folder-open" title="Load" data-bind="click: function() { if ($root.isLoadActionPossible()) { $root.loadFile($data.name, false); } else { return; } }, css: {disabled: !$root.isLoadActionPossible()}, clickBubble: false"></a>&nbsp;|&nbsp;<a href="#" class="icon-print" title="Load and Print" data-bind="click: function() { if ($root.isLoadAndPrintActionPossible()) { $root.loadFile($data.name, true); } else { return; } }, css: {disabled: !$root.isLoadAndPrintActionPossible()}, clickBubble: false"></a>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -520,6 +523,14 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
+            <div class="footer">
+                <ul>
+                    <li><a href="http://octoprint.org"><i class="icon-home"></i> Homepage</a></li>
+                    <li><a href="https://github.com/foosel/OctoPrint/"><i class="icon-download"></i> Sourcecode</a></li>
+                    <li><a href="https://github.com/foosel/OctoPrint/wiki"><i class="icon-book"></i> Documentation</a></li>
+                    <li><a href="https://github.com/foosel/OctoPrint/issues"><i class="icon-flag"></i> Bugs and Requests</a></li>
+                </ul>
             </div>
         </div>
 

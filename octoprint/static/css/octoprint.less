@@ -75,6 +75,10 @@
     @base: #7728FF;
     .navbar-inner-color(@base);
   }
+
+  .brand img {
+    vertical-align: bottom;
+  }
 }
 
 /** OctoPrint application tabs */
@@ -162,6 +166,11 @@
     a.accordion-toggle {
       display: inline-block;
     }
+
+    [class^="icon-"],
+    [class*=" icon-"] {
+      color: #000;
+    }
   }
 }
 
@@ -198,7 +207,17 @@ table {
 
     &.gcode_files_action {
       text-align: center;
-      width: 45px;
+      width: 70px;
+
+      a {
+        text-decoration: none;
+        color: #000;
+
+        &.disabled {
+          color: #ccc;
+          cursor: default;
+        }
+      }
     }
 
     // timelapse files
@@ -408,6 +427,21 @@ ul.dropdown-menu li a {
 	  max-height: none;
   }
 }
+
+/** Footer */
+.footer {
+  text-align: right;
+
+  ul li {
+    display: inline;
+    margin-left: 1em;
+    font-size: 85%;
+    a {
+      color: #555;
+    }
+  }
+}
+
 /** General helper classes */
 
 .text-right {
