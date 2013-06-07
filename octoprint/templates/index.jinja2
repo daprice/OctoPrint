@@ -38,46 +38,53 @@
             <div class="navbar-inner" data-bind="css: appearance.color">
                 <div class="container">
                     <a class="brand" href="#"><img src="{{ url_for('static', filename='img/tentacle-20x20.png') }}"> <span data-bind="text: appearance.brand">OctoPrint</span></a>
-                    <ul class="nav pull-right">
-                        <li style="display: none;" data-bind="visible: loginState.isAdmin">
-                            <a id="navbar_show_settings" class="pull-right" href="#settings_dialog">
-                                <i class="icon-wrench"></i> Settings
-                            </a>
-                        </li>
-                        {% if enableSystemMenu %}
-                        <li class="dropdown" style="display: none" data-bind="visible: loginState.isAdmin">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <i class="icon-off"></i> System
-                                <b class="caret"></b>
-                            </a>
-                            <ul class="dropdown-menu" data-bind="foreach: systemActions">
-                                <li><a href="#" data-bind="click: $root.triggerAction, text: name"></a></li>
-                            </ul>
-                        </li>
-                        {% endif %}
-                        {% if enableAccessControl %}
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <i class="icon-user"></i> <span data-bind="text: loginState.userMenuText">Login</span>
-                                <b class="caret"></b>
-                            </a>
-                            <div id="login_dropdown_loggedout" style="padding: 15px" class="dropdown-menu" data-bind="css: {hide: loginState.loggedIn(), 'dropdown-menu': !loginState.loggedIn()}">
-                                <label for="login_user">Username</label>
-                                <input type="text" id="login_user" placeholder="Username">
-                                <label for="login_pass">Password</label>
-                                <input type="password" id="login_pass" placeholder="Password">
-                                <label class="checkbox">
-                                    <input type="checkbox" id="login_remember"> Remember me
-                                </label>
-                                <button class="btn btn-block btn-primary" id="login_button" data-bind="click: loginState.login">Login</button>
-                            </div>
-                            <ul id="login_dropdown_loggedin" class="hide" data-bind="css: {hide: !loginState.loggedIn(), 'dropdown-menu': loginState.loggedIn()}">
-                                <li><a href="#" id="change_password_button" data-bind="click: function() { users.showChangePasswordDialog(loginState.currentUser()); }">Change Password</a></li>
-                                <li><a href="#" id="logout_button" data-bind="click: loginState.logout">Logout</a></li>
-                            </ul>
-                        </li>
-                        {% endif %}
-                    </ul>
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				        <span class="icon-bar"></span>
+				        <span class="icon-bar"></span>
+				        <span class="icon-bar"></span>
+				    </a>
+                    <div class="nav-collapse collapse">
+	                    <ul class="nav pull-right">
+	                        <li style="display: none;" data-bind="visible: loginState.isAdmin">
+	                            <a id="navbar_show_settings" class="pull-right" href="#settings_dialog">
+	                                <i class="icon-wrench"></i> Settings
+	                            </a>
+	                        </li>
+	                        {% if enableSystemMenu %}
+	                        <li class="dropdown" style="display: none" data-bind="visible: loginState.isAdmin">
+	                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+	                                <i class="icon-off"></i> System
+	                                <b class="caret"></b>
+	                            </a>
+	                            <ul class="dropdown-menu" data-bind="foreach: systemActions">
+	                                <li><a href="#" data-bind="click: $root.triggerAction, text: name"></a></li>
+	                            </ul>
+	                        </li>
+	                        {% endif %}
+	                        {% if enableAccessControl %}
+	                        <li class="dropdown">
+	                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+	                                <i class="icon-user"></i> <span data-bind="text: loginState.userMenuText">Login</span>
+	                                <b class="caret"></b>
+	                            </a>
+	                            <div id="login_dropdown_loggedout" style="padding: 15px" class="dropdown-menu" data-bind="css: {hide: loginState.loggedIn(), 'dropdown-menu': !loginState.loggedIn()}">
+	                                <label for="login_user">Username</label>
+	                                <input type="text" id="login_user" placeholder="Username">
+	                                <label for="login_pass">Password</label>
+	                                <input type="password" id="login_pass" placeholder="Password">
+	                                <label class="checkbox">
+	                                    <input type="checkbox" id="login_remember"> Remember me
+	                                </label>
+	                                <button class="btn btn-block btn-primary" id="login_button" data-bind="click: loginState.login">Login</button>
+	                            </div>
+	                            <ul id="login_dropdown_loggedin" class="hide" data-bind="css: {hide: !loginState.loggedIn(), 'dropdown-menu': loginState.loggedIn()}">
+	                                <li><a href="#" id="change_password_button" data-bind="click: function() { users.showChangePasswordDialog(loginState.currentUser()); }">Change Password</a></li>
+	                                <li><a href="#" id="logout_button" data-bind="click: loginState.logout">Logout</a></li>
+	                            </ul>
+	                        </li>
+	                        {% endif %}
+	                    </ul>
+                    </div>
                 </div>
             </div>
         </div>
