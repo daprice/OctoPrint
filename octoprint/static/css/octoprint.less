@@ -30,6 +30,24 @@
 	  border-bottom-color: @caret-hover-color;
 	  border-top-color: @caret-hover-color;
   }
+  
+  &.btn-navbar {
+	  @btn-base: lighten(@base, 20%);
+	  @top: lighten(@btn-base, 5%);
+	  @bottom: @btn-base;
+	  
+	  background-color: @btn-base;
+	  background-image: -webkit-linear-gradient(top, @top, @bottom); /* For Chrome and Safari */
+	  background-image: -moz-linear-gradient(top, @top, @bottom); /* For old Fx (3.6 to 15) */
+	  background-image: -ms-linear-gradient(top, @top, @bottom); /* For pre-releases of IE 10*/
+	  background-image: -o-linear-gradient(top, @top, @bottom); /* For old Opera (11.1 to 12.0) */
+	  background-image: linear-gradient(to bottom, @top, @bottom); /* Standard syntax; must be last */
+	  
+	  .icon-bar {
+		  background-color: @text-color;
+		  box-shadow: 0px 1px 0px 0px contrast(@base, lighten(@btn-base, 15%), darken(@btn-base, 15%));
+	  }
+  }
 }
 
 .navbar-inner-color (@base) {
@@ -43,8 +61,31 @@
   background-image: -o-linear-gradient(top, @top, @bottom); /* For old Opera (11.1 to 12.0) */
   background-image: linear-gradient(to bottom, @top, @bottom); /* Standard syntax; must be last */
 
-  .brand, .nav>li>a {
+  .brand, .nav>li>a, .btn-navbar {
     .navbar-inner-text(@base);
+  }
+  
+  @media (max-width:979px) {
+	  & .nav-collapse .nav > li > a, .nav-collapse .dropdown-menu a {
+		  .navbar-inner-text(@base);
+	  }
+	  
+	  & .dropdown-menu li > a:hover, .dropdown-menu li > a:focus, .dropdown-submenu:hover > a {
+		  @dropdown-base: darken(@base, 15%);
+		  @top: lighten(@dropdown-base, 3%);
+		  @bottom: darken(@dropdown-base, 7%);
+		  
+		  background-color: @dropdown-base;
+		  background-image: -webkit-linear-gradient(top, @top, @bottom); /* For Chrome and Safari */
+		  background-image: -moz-linear-gradient(top, @top, @bottom); /* For old Fx (3.6 to 15) */
+		  background-image: -ms-linear-gradient(top, @top, @bottom); /* For pre-releases of IE 10*/
+		  background-image: -o-linear-gradient(top, @top, @bottom); /* For old Opera (11.1 to 12.0) */
+		  background-image: linear-gradient(to bottom, @top, @bottom); /* Standard syntax; must be last */
+	  }
+	  
+	  .nav-collapse .nav > li > a:hover, .nav-collapse .dropdown-menu a:hover {
+		  background-color: lighten(@base, 20%);
+	  }
   }
 
   .nav {
@@ -93,6 +134,7 @@
     vertical-align: bottom;
   }
 }
+
 
 /** OctoPrint application tabs */
 
