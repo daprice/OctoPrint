@@ -15,7 +15,6 @@
 }
 
 .navbar-inner-text (@base) {
-  @text-color: contrast(@base, #333333, #f2f2f2);
   text-shadow: 0 1px 0 contrast(@base, lighten(@base, 15%), darken(@base, 15%));
   color: @text-color;
   @caret-color: average(@base, @text-color);
@@ -50,9 +49,32 @@
   }
 }
 
+.brand (@color, @dark, @light) when (@color = @dark) {
+	span {
+	  background-image: url(../img/tentacle-20x20.png);
+	  
+	  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+	    background-image: url(../img/tentacle-20x20@2x.png);
+	  }
+	}
+}
+.brand (@color, @dark, @light) when (@color = @light) {
+	span {
+	  background-image: url(../img/tentacle-20x20-light.png);
+	  
+	  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+	    background-image: url(../img/tentacle-20x20-light@2x.png);
+	  }
+    }
+}
+
 .navbar-inner-color (@base) {
   @top: lighten(@base, 25%);
   @bottom: darken(@base, 15%);
+  
+  @text-color-light: #f2f2f2;
+  @text-color-dark: #333333;
+  @text-color: contrast(@base, @text-color-dark, @text-color-light);
 
   background-color: @base; /* fallback color if gradients are not supported */
   background-image: -webkit-linear-gradient(top, @top, @bottom); /* For Chrome and Safari */
@@ -86,6 +108,10 @@
 	  .nav-collapse .nav > li > a:hover, .nav-collapse .dropdown-menu a:hover {
 		  background-color: lighten(@base, 20%);
 	  }
+  }
+
+  .brand {
+  		.brand(@text-color, @text-color-dark, @text-color-light);
   }
 
   .nav {
@@ -129,9 +155,12 @@
     @base: #7728FF;
     .navbar-inner-color(@base);
   }
-
-  .brand img {
-    vertical-align: bottom;
+  
+  .brand span {
+	  background-size: 20px 20px;
+	  background-position: left center;
+	  padding-left: 24px;
+	  background-repeat: no-repeat;
   }
 }
 
