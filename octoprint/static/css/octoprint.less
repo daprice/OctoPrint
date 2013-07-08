@@ -249,7 +249,7 @@
     .settings-trigger, .accordion-heading-button {
       float: right;
 
-      .dropdown-toggle {
+      a {
         display: inline-block;
         padding: 8px 15px;
         font-size: 14px;
@@ -607,6 +607,10 @@ ul.dropdown-menu li a {
 @media (max-width: 767px) {
 	.footer {
 		text-align: center;
+		
+		& > * {
+			float: none;
+		}
 	}
 }
 
