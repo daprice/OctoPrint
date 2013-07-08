@@ -2,6 +2,9 @@
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import re
+import os
+
 def getFormattedSize(num):
 	"""
 	 Taken from http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
@@ -39,3 +42,25 @@ def getClass(name):
 	for comp in parts[1:]:
 		m = getattr(m, comp)
 	return m
+
+def matchesGcode(line, gcode):
+	return re.search("^%s(\D|$)" % gcode.strip(), line, re.I)
+
+def getGitInfo():
+	gitPath = os.path.abspath(os.path.join(os.path.split(os.path.abspath(__file__))[0], "../../.git"))
+	if not os.path.exists(gitPath):
+		return (None, None)
+
+	headref = None
+	with open(os.path.join(gitPath, "HEAD"), "r") as f:
+		headref = f.readline().strip()
+
+	if headref is None:
+		return (None, None)
+
+	headref = headref[len("ref: "):]
+	branch = headref[headref.rfind("/") + 1:]
+	with open(os.path.join(gitPath, headref)) as f:
+		head = f.readline().strip()
+
+	return (branch, head)
